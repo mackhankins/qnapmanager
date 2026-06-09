@@ -21,8 +21,11 @@ accordingly: no multi-user concerns, no auth beyond the *arr API keys, lightweig
 - Browse the **full combined library** in one unified, sortable table.
 - Per-item: show **size on disk**, **toggle the `temporary` tag**, **delete now**
   (removes files + library entry via the *arr API, with confirmation).
-- **Bulk select + act**: select many items (e.g. all `temporary`, or all over a size) and
-  tag or delete them in one action.
+- **Bulk select + act**: select many items and tag or delete them in one action.
+  Selection is manual — click rows, shift-click for ranges, and a "select all (filtered)"
+  checkbox in the header that selects everything currently visible under the active filter.
+  "Everything over X GB" is achieved by sorting the Size column descending and range-selecting;
+  there is no dedicated size-threshold filter in v1.
 - Always-available filter chips: `All / TV / Movies / temporary` + title search.
 - Settings screen with per-service "Test connection".
 
