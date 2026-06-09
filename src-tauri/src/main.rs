@@ -1,10 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod config;
-mod error;
-mod models;
+use qnap_manager_lib::{client, config, error, models};
 
 fn main() {
-    qnap_scaffold_lib::run()
+    qnap_manager_lib::run()
 }
