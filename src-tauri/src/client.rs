@@ -112,13 +112,12 @@ impl MediaServer for ArrClient {
 
     async fn set_item_tags(&self, item_id: i64, tags: &[i64]) -> AppResult<()> {
         // Fetch the full item, replace tags, PUT it back (the *arr APIs expect the whole body).
+        let path = format!("{}/{}", self.collection(), item_id);
         let mut body: serde_json::Value = {
-            let path = format!("{}/{}", self.collection(), item_id);
             let resp = self.send(self.http.get(self.url(&path))).await?;
             resp.json().await.map_err(|_| AppError::NotFound)?
         };
         body["tags"] = json!(tags);
-        let path = format!("{}/{}", self.collection(), item_id);
         self.send(self.http.put(self.url(&path)).json(&body)).await?;
         Ok(())
     }
