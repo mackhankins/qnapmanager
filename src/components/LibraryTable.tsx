@@ -48,7 +48,7 @@ export function LibraryTable({ items, onDelete, onToggleTag, onBulkDelete }: Pro
     },
     { accessorKey: "title", header: "Title" },
     { accessorKey: "service", header: "Type",
-      cell: (c) => (c.getValue() === "sonarr" ? "TV" : "Film") },
+      cell: (c) => (c.getValue() === "sonarr" ? "TV" : "Movie") },
     { id: "tags", header: "Tags",
       cell: ({ row }) => row.original.tag_labels.join(", ") || "—" },
     { accessorKey: "added", header: "Date Added",
