@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod error;
+mod models;
 
 fn main() {
     qnap_scaffold_lib::run()
