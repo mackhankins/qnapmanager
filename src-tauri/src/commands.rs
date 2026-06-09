@@ -1,7 +1,7 @@
 use crate::client::{ArrClient, MediaServer};
 use crate::config::{self, AppConfig, ServiceConfig};
 use crate::error::{AppError, AppResult};
-use crate::models::{has_temporary, toggle_tag, LibraryItem, Service};
+use crate::models::{toggle_tag, LibraryItem, Service};
 use serde::Serialize;
 use std::path::PathBuf;
 use tauri::Manager;
@@ -99,7 +99,7 @@ pub async fn toggle_temporary_tag(
     .ok_or_else(|| AppError::Config("service not configured".into()))?;
     let client = client_for(item.service, &sc)?;
     let tag_id = client.ensure_temporary_tag().await?;
-    let _ = has_temporary(&item); // intent documented; toggle works on ids
+    // Toggle on tag ids: if the temporary tag id is already present it's removed, else added.
     let new_tags = toggle_tag(&item.tags, tag_id);
     client.set_item_tags(item.id, &new_tags).await
 }
