@@ -1,3 +1,5 @@
 .superpowers/
 /target
 node_modules/
+temporary/
+.DS_Store

@@ -19,8 +19,9 @@ accordingly: no multi-user concerns, no auth beyond the *arr API keys, lightweig
 - Desktop app built with **Tauri + Rust backend + React frontend** (TanStack Table).
 - Connect to **Sonarr** and **Radarr** via their v3 REST APIs.
 - Browse the **full combined library** in one unified, sortable table.
-- Per-item: show **size on disk**, **toggle the `temporary` tag**, **delete now**
-  (removes files + library entry via the *arr API, with confirmation).
+- Per-item: show **size on disk**, **date added**, computed **age** (sortable),
+  **toggle the `temporary` tag**, **delete now** (removes files + library entry via the
+  *arr API, with confirmation).
 - **Bulk select + act**: select many items and tag or delete them in one action.
   Selection is manual — click rows, shift-click for ranges, and a "select all (filtered)"
   checkbox in the header that selects everything currently visible under the active filter.
@@ -64,8 +65,9 @@ accordingly: no multi-user concerns, no auth beyond the *arr API keys, lightweig
   normalized items, not service-specific shapes. Adding a third *arr or Plex later = one new
   impl, nothing above changes.
 - **`models`** — serde structs for the normalized **`LibraryItem`** (id, title, service,
-  `size_on_disk`, tags, …) plus the raw Sonarr/Radarr response shapes, and the pure
-  normalization functions (raw JSON → `LibraryItem`).
+  `size_on_disk`, `added` timestamp, tags, …) plus the raw Sonarr/Radarr response shapes, and
+  the pure normalization functions (raw JSON → `LibraryItem`). `added` parses the *arr ISO
+  format (`%Y-%m-%dT%H:%M:%SZ`); **age** is derived at render time (now − added), not stored.
 - **`commands`** — the Tauri command layer the frontend calls: `list_library`,
   `toggle_temporary_tag`, `delete_item`, `bulk_delete`, `test_connection`, `get_config`,
   `save_config`. Thin orchestration only.
@@ -87,7 +89,8 @@ accordingly: no multi-user concerns, no auth beyond the *arr API keys, lightweig
 4. App is usable with **only one service configured** — the missing one is simply absent.
 
 **Tag toggle:** `toggle_temporary_tag(item)` PUTs the updated tag set back to the item.
-If the `temporary` tag doesn't exist on that service, it is created first. Optimistic UI
+The `temporary` tag is matched **case-insensitively** on its `label` (mirrors the existing
+scripts). If no matching tag exists on that service, it is created first. Optimistic UI
 update, reconciled on success.
 
 **Delete (safety model):**
@@ -126,11 +129,29 @@ update, reconciled on success.
 - No e2e harness in v1.
 
 ## UI (approved layout)
-Unified table (option A): single sortable list of TV + movies with a **Type** column.
+Unified table (option A): single sortable list of TV + movies. Columns: select checkbox,
+**Title**, **Type** (TV/Movie), **Tags**, **Date Added**, **Age** (e.g. `47d`), **Size**.
 Always-present filter chips `All / TV / Movies / temporary` plus a title search box.
 A selection bar shows count + total selected size and exposes **Tag temporary** and
-**Delete** actions. Size column sortable (default sort: size descending, to surface space
-hogs). Rows in the current selection are visually highlighted.
+**Delete** actions. Size and Age columns sortable (default sort: size descending, to surface
+space hogs). Rows in the current selection are visually highlighted.
+
+## Reference: existing setup (from the python scripts)
+
+The repo's `temporary/` scripts (kept for reference, **git-ignored** because they contain
+hardcoded keys) establish the real environment:
+
+- **Sonarr (TV):** `http://192.168.40.103:8989`
+- **Radarr (movies):** `http://192.168.40.103:7878`
+- Both use the **pyarr** client against the v3 API: `get_series` / `get_movie`,
+  `get_tag`, `del_series` / `del_movie`.
+- Tag label is `temporary`, matched case-insensitively.
+- Items expose `added` (ISO `%Y-%m-%dT%H:%M:%SZ`); the scripts' rule is delete 60 days after
+  `added`. v1 surfaces Date Added + Age as columns but does **not** auto-delete.
+
+The settings screen pre-fills these two URLs as defaults (editable). The hardcoded API keys
+in the scripts should be **rotated** and are never copied into the new app's source — keys are
+entered once in settings and stored in the OS keychain.
 
 ## Key decisions log
 - **Tauri + Rust backend** (not TS-only / Electron): keeps API keys out of the webview,
