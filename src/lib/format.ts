@@ -18,3 +18,20 @@ export function formatAge(added: string | null, now: number): string {
   const d = ageDays(added, now);
   return d == null ? "—" : `${d}d`;
 }
+
+// Friendly labels for the *arr `status` field (Sonarr series + Radarr movies).
+const STATUS_LABELS: Record<string, string> = {
+  continuing: "Continuing",
+  ended: "Ended",
+  upcoming: "Upcoming",
+  deleted: "Deleted",
+  tba: "TBA",
+  announced: "Announced",
+  inCinemas: "In Cinemas",
+  released: "Released",
+};
+
+export function formatStatus(status: string | null): string {
+  if (!status) return "—";
+  return STATUS_LABELS[status] ?? status;
+}

@@ -15,6 +15,8 @@ pub struct LibraryItem {
     pub title: String,
     pub service: Service,
     pub size_on_disk: i64,
+    /// Sonarr: continuing/ended/upcoming. Radarr: announced/inCinemas/released/etc.
+    pub status: Option<String>,
     pub added: Option<String>,
     pub tags: Vec<i64>,
     pub tag_labels: Vec<String>,
@@ -37,6 +39,8 @@ pub struct RawItem {
     pub size_on_disk: i64,
     #[serde(default)]
     pub statistics: Option<RawStatistics>,
+    #[serde(default)]
+    pub status: Option<String>,
     #[serde(default)]
     pub added: Option<String>,
     #[serde(default)]
@@ -71,6 +75,7 @@ pub fn normalize(raw: RawItem, service: Service, tags: &[RawTag]) -> LibraryItem
         title: raw.title,
         service,
         size_on_disk,
+        status: raw.status,
         added: raw.added,
         tags: raw.tags,
         tag_labels,
@@ -133,6 +138,17 @@ mod tests {
     }
 
     #[test]
+    fn status_passes_through_from_api() {
+        let raw: RawItem = serde_json::from_str(
+            r#"{"id":7,"title":"The Big Show","status":"ended","tags":[],
+                "statistics":{"sizeOnDisk":100}}"#,
+        )
+        .unwrap();
+        let item = normalize(raw, Service::Sonarr, &tags());
+        assert_eq!(item.status.as_deref(), Some("ended"));
+    }
+
+    #[test]
     fn radarr_top_level_size_preferred_when_no_statistics() {
         let raw: RawItem = serde_json::from_str(
             r#"{"id":3,"title":"Film","sizeOnDisk":38400000000,"tags":[]}"#,
@@ -154,7 +170,7 @@ mod tests {
     fn has_temporary_is_case_insensitive() {
         let item = LibraryItem {
             id: 1, title: "X".into(), service: Service::Radarr, size_on_disk: 0,
-            added: None, tags: vec![9], tag_labels: vec!["Temporary".into()],
+            status: None, added: None, tags: vec![9], tag_labels: vec!["Temporary".into()],
         };
         assert!(has_temporary(&item));
     }

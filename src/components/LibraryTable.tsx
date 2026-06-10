@@ -5,7 +5,7 @@ import {
 } from "@tanstack/react-table";
 import type { LibraryItem } from "../api";
 import { isTemporary } from "../api";
-import { formatBytes, formatAge } from "../lib/format";
+import { formatBytes, formatAge, formatStatus } from "../lib/format";
 
 type Filter = "all" | "sonarr" | "radarr" | "temporary";
 
@@ -19,6 +19,7 @@ interface Props {
 export function LibraryTable({ items, onDelete, onToggleTag, onBulkDelete }: Props) {
   const [filter, setFilter] = useState<Filter>("all");
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [sorting, setSorting] = useState<SortingState>([{ id: "size_on_disk", desc: true }]);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const now = Date.now();
@@ -28,10 +29,19 @@ export function LibraryTable({ items, onDelete, onToggleTag, onBulkDelete }: Pro
       if (filter === "sonarr" && it.service !== "sonarr") return false;
       if (filter === "radarr" && it.service !== "radarr") return false;
       if (filter === "temporary" && !isTemporary(it)) return false;
+      if (statusFilter && it.status !== statusFilter) return false;
       if (search && !it.title.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [items, filter, search]);
+  }, [items, filter, search, statusFilter]);
+
+  // Distinct statuses present in the library, cleanup-relevant ones first.
+  const statusOptions = useMemo(() => {
+    const present = [...new Set(items.map((it) => it.status).filter((s): s is string => !!s))];
+    const order = ["ended", "continuing", "upcoming", "released", "inCinemas", "announced", "tba", "deleted"];
+    const rank = (s: string) => (order.indexOf(s) === -1 ? order.length : order.indexOf(s));
+    return present.sort((a, b) => rank(a) - rank(b));
+  }, [items]);
 
   const columns = useMemo<ColumnDef<LibraryItem>[]>(() => [
     {
@@ -49,6 +59,8 @@ export function LibraryTable({ items, onDelete, onToggleTag, onBulkDelete }: Pro
     { accessorKey: "title", header: "Title" },
     { accessorKey: "service", header: "Type",
       cell: (c) => (c.getValue() === "sonarr" ? "TV" : "Movie") },
+    { accessorKey: "status", header: "Status",
+      cell: (c) => formatStatus(c.getValue() as string | null) },
     { id: "tags", header: "Tags",
       cell: ({ row }) => row.original.tag_labels.join(", ") || "—" },
     { accessorKey: "added", header: "Date Added",
@@ -92,6 +104,13 @@ export function LibraryTable({ items, onDelete, onToggleTag, onBulkDelete }: Pro
           <button key={c} className={`chip ${filter === c ? "active" : ""}`}
             onClick={() => setFilter(c)}>{chipLabel[c]}</button>
         ))}
+        <select className="status-filter" aria-label="Filter by status"
+          value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <option value="">Any status</option>
+          {statusOptions.map((s) => (
+            <option key={s} value={s}>{formatStatus(s)}</option>
+          ))}
+        </select>
       </div>
 
       {selected.length > 0 && (

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatBytes, ageDays, formatAge } from "./format";
+import { formatBytes, ageDays, formatAge, formatStatus } from "./format";
 
 // NOTE: The plan's test expectations ("82.1 GB", "9.3 MB") matched 1024-based (binary)
 // division, but the formatter uses 1000-based (decimal) powers. Corrected expectations:
@@ -22,4 +22,13 @@ describe("age", () => {
     const now = new Date("2025-03-01T00:00:00Z").getTime();
     expect(formatAge("2025-02-01T00:00:00Z", now)).toBe("28d");
   });
+});
+
+describe("formatStatus", () => {
+  it("maps known statuses to friendly labels", () => {
+    expect(formatStatus("ended")).toBe("Ended");
+    expect(formatStatus("inCinemas")).toBe("In Cinemas");
+  });
+  it("dashes a null status", () => expect(formatStatus(null)).toBe("—"));
+  it("falls back to the raw value when unknown", () => expect(formatStatus("weird")).toBe("weird"));
 });

@@ -7,6 +7,7 @@ export interface LibraryItem {
   title: string;
   service: Service;
   size_on_disk: number;
+  status: string | null;
   added: string | null;
   tags: number[];
   tag_labels: string[];
