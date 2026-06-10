@@ -27,3 +27,4 @@ dist-ssr
 .superpowers/
 /src-tauri/target
 temporary/
+.claude/settings.local.json
