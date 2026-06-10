@@ -24,7 +24,6 @@ dist-ssr
 *.sw?
 
 # Project-specific
-.superpowers/
 /src-tauri/target
 temporary/
 .claude/settings.local.json

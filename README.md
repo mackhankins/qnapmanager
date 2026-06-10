@@ -91,19 +91,9 @@ src-tauri/src/            Rust backend
   config.rs               config file + keychain
   commands.rs             Tauri commands (list, tag, delete, bulk, test)
   error.rs, lib.rs        typed errors + library entry point
-docs/superpowers/         design spec and implementation plan
-temporary/                legacy Python scripts (git-ignored — see below)
 ```
-
-## Note on `temporary/`
-
-The `temporary/` folder holds the original Python cleanup scripts this app
-replaces, kept only for reference. It is **git-ignored** because those scripts
-contain hardcoded API keys — don't commit them, and rotate the keys if they were
-ever exposed.
 
 ## Status
 
 Local single-user v1. Deferred for later: scheduled/automatic cleanup, Plex
 watched-status integration, and surfacing config/save errors in the UI banner.
-See `docs/superpowers/specs/` and `docs/superpowers/plans/` for the full design.
