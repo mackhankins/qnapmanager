@@ -19,6 +19,21 @@ fn client_for(service: Service, sc: &ServiceConfig) -> AppResult<ArrClient> {
     Ok(ArrClient::new(service, &sc.url, &key))
 }
 
+async fn load_service(service: Service, sc: Option<ServiceConfig>) -> Result<Vec<LibraryItem>, ServiceError> {
+    let sc = match sc.filter(|s| !s.url.is_empty()) {
+        Some(s) => s,
+        None => return Ok(Vec::new()),
+    };
+    let client = client_for(service, &sc).map_err(|e| ServiceError {
+        service: format!("{:?}", service),
+        message: e.to_string(),
+    })?;
+    client.list().await.map_err(|e| ServiceError {
+        service: format!("{:?}", service),
+        message: e.to_string(),
+    })
+}
+
 #[derive(Serialize)]
 pub struct LoadResult {
     pub items: Vec<LibraryItem>,
@@ -55,32 +70,28 @@ pub fn save_config(
 
 #[tauri::command]
 pub async fn test_connection(url: String, api_key: String, service: Service) -> Result<(), AppError> {
-    ArrClient::new(service, &url, &api_key).test_connection().await
+    // Empty key field means "use the stored key" (mirrors save_config's blank-key semantics).
+    let key = if api_key.is_empty() {
+        config::get_api_key(service)?.unwrap_or_default()
+    } else {
+        api_key
+    };
+    ArrClient::new(service, &url, &key).test_connection().await
 }
 
 #[tauri::command]
 pub async fn list_library(app: tauri::AppHandle) -> Result<LoadResult, AppError> {
     let cfg = config::load_config(&config_dir(&app)?)?;
+    let (sonarr, radarr) = tokio::join!(
+        load_service(Service::Sonarr, cfg.sonarr.clone()),
+        load_service(Service::Radarr, cfg.radarr.clone()),
+    );
     let mut items = Vec::new();
     let mut errors = Vec::new();
-
-    for (service, sc) in [
-        (Service::Sonarr, cfg.sonarr.clone()),
-        (Service::Radarr, cfg.radarr.clone()),
-    ] {
-        let Some(sc) = sc.filter(|s| !s.url.is_empty()) else { continue };
-        match client_for(service, &sc) {
-            Ok(client) => match client.list().await {
-                Ok(mut list) => items.append(&mut list),
-                Err(e) => errors.push(ServiceError {
-                    service: format!("{:?}", service),
-                    message: e.to_string(),
-                }),
-            },
-            Err(e) => errors.push(ServiceError {
-                service: format!("{:?}", service),
-                message: e.to_string(),
-            }),
+    for res in [sonarr, radarr] {
+        match res {
+            Ok(mut v) => items.append(&mut v),
+            Err(e) => errors.push(e),
         }
     }
     Ok(LoadResult { items, errors })
