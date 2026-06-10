@@ -7,6 +7,28 @@ import type { LibraryItem } from "../api";
 import { isTemporary } from "../api";
 import { formatBytes, formatAge, formatStatus } from "../lib/format";
 
+function TagIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"}
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+      <circle cx="7.5" cy="7.5" r="1.1" fill={filled ? "#fff" : "currentColor"} stroke="none" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h18" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <line x1="10" x2="10" y1="11" y2="17" />
+      <line x1="14" x2="14" y1="11" y2="17" />
+    </svg>
+  );
+}
+
 type Filter = "all" | "sonarr" | "radarr" | "temporary";
 
 interface Props {
@@ -60,7 +82,10 @@ export function LibraryTable({ items, onDelete, onToggleTag, onBulkDelete }: Pro
     { accessorKey: "service", header: "Type",
       cell: (c) => (c.getValue() === "sonarr" ? "TV" : "Movie") },
     { accessorKey: "status", header: "Status",
-      cell: (c) => formatStatus(c.getValue() as string | null) },
+      cell: (c) => {
+        const s = c.getValue() as string | null;
+        return s ? <span className={`status-badge status-${s}`}>{formatStatus(s)}</span> : "—";
+      } },
     { id: "tags", header: "Tags",
       cell: ({ row }) => row.original.tag_labels.join(", ") || "—" },
     { accessorKey: "added", header: "Date Added",
@@ -140,10 +165,20 @@ export function LibraryTable({ items, onDelete, onToggleTag, onBulkDelete }: Pro
                 <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
               ))}
               <td className="row-actions">
-                <button onClick={() => onToggleTag(row.original)}>
-                  {isTemporary(row.original) ? "Untag" : "Tag temp"}
+                <button
+                  className={`icon-btn ${isTemporary(row.original) ? "active" : ""}`}
+                  title={isTemporary(row.original) ? "Remove temporary tag" : "Tag as temporary"}
+                  aria-label={isTemporary(row.original) ? "Remove temporary tag" : "Tag as temporary"}
+                  onClick={() => onToggleTag(row.original)}>
+                  <TagIcon filled={isTemporary(row.original)} />
                 </button>
-                <button onClick={() => onDelete(row.original)}>Delete</button>
+                <button
+                  className="icon-btn danger"
+                  title="Delete"
+                  aria-label={`Delete ${row.original.title}`}
+                  onClick={() => onDelete(row.original)}>
+                  <TrashIcon />
+                </button>
               </td>
             </tr>
           ))}

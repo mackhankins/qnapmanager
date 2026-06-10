@@ -18,7 +18,7 @@ describe("LibraryTable", () => {
 
   it("filters to temporary when the chip is clicked", async () => {
     render(<LibraryTable items={items} onDelete={() => {}} onToggleTag={() => {}} onBulkDelete={() => {}} />);
-    await userEvent.click(screen.getByRole("button", { name: /temporary/i }));
+    await userEvent.click(screen.getByRole("button", { name: /^temporary$/i }));
     expect(screen.getByText("Big Show")).toBeInTheDocument();
     expect(screen.queryByText("Blockbuster")).not.toBeInTheDocument();
   });
