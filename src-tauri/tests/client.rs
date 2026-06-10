@@ -27,6 +27,26 @@ async fn list_normalizes_radarr_movies() {
 }
 
 #[tokio::test]
+async fn list_reads_sonarr_size_from_statistics() {
+    // Sonarr's /api/v3/series nests sizeOnDisk under `statistics` (no top-level field).
+    let server = MockServer::start().await;
+    Mock::given(method("GET")).and(path("/api/v3/tag"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([])))
+        .mount(&server).await;
+    Mock::given(method("GET")).and(path("/api/v3/series"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([
+            {"id": 5, "title": "The Big Show", "added": "2025-01-02T00:00:00Z", "tags": [],
+             "statistics": {"seasonCount": 4, "episodeFileCount": 40, "sizeOnDisk": 88_130_000_000_i64}}
+        ])))
+        .mount(&server).await;
+
+    let c = ArrClient::new(Service::Sonarr, &server.uri(), "k");
+    let items = c.list().await.unwrap();
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0].size_on_disk, 88_130_000_000);
+}
+
+#[tokio::test]
 async fn auth_failure_maps_to_auth_error() {
     let server = MockServer::start().await;
     Mock::given(method("GET")).and(path("/api/v3/tag"))

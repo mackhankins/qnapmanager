@@ -20,6 +20,14 @@ pub struct LibraryItem {
     pub tag_labels: Vec<String>,
 }
 
+/// Sonarr nests sizeOnDisk under a `statistics` object; Radarr also exposes it
+/// at the top level. We read both and prefer statistics when present.
+#[derive(Debug, Deserialize)]
+pub struct RawStatistics {
+    #[serde(default, rename = "sizeOnDisk")]
+    pub size_on_disk: i64,
+}
+
 /// Raw Sonarr series / Radarr movie share the fields we need.
 #[derive(Debug, Deserialize)]
 pub struct RawItem {
@@ -27,6 +35,8 @@ pub struct RawItem {
     pub title: String,
     #[serde(default, rename = "sizeOnDisk")]
     pub size_on_disk: i64,
+    #[serde(default)]
+    pub statistics: Option<RawStatistics>,
     #[serde(default)]
     pub added: Option<String>,
     #[serde(default)]
@@ -48,11 +58,19 @@ pub fn normalize(raw: RawItem, service: Service, tags: &[RawTag]) -> LibraryItem
         .iter()
         .filter_map(|id| tags.iter().find(|t| t.id == *id).map(|t| t.label.clone()))
         .collect();
+    // Prefer the statistics.sizeOnDisk (Sonarr's location) when it carries a value;
+    // otherwise fall back to the top-level field (Radarr).
+    let size_on_disk = raw
+        .statistics
+        .as_ref()
+        .map(|s| s.size_on_disk)
+        .filter(|&v| v > 0)
+        .unwrap_or(raw.size_on_disk);
     LibraryItem {
         id: raw.id,
         title: raw.title,
         service,
-        size_on_disk: raw.size_on_disk,
+        size_on_disk,
         added: raw.added,
         tags: raw.tags,
         tag_labels,
@@ -99,6 +117,29 @@ mod tests {
         assert_eq!(item.added.as_deref(), Some("2025-01-02T00:00:00Z"));
         assert_eq!(item.tag_labels, vec!["temporary".to_string()]);
         assert!(has_temporary(&item));
+    }
+
+    #[test]
+    fn sonarr_size_comes_from_statistics_object() {
+        // Real Sonarr /api/v3/series nests sizeOnDisk under `statistics`, with no
+        // top-level sizeOnDisk. Radarr exposes it top-level.
+        let raw: RawItem = serde_json::from_str(
+            r#"{"id":7,"title":"The Big Show","added":"2025-01-02T00:00:00Z","tags":[1],
+                "statistics":{"seasonCount":4,"episodeFileCount":40,"sizeOnDisk":88130000000}}"#,
+        )
+        .unwrap();
+        let item = normalize(raw, Service::Sonarr, &tags());
+        assert_eq!(item.size_on_disk, 88130000000);
+    }
+
+    #[test]
+    fn radarr_top_level_size_preferred_when_no_statistics() {
+        let raw: RawItem = serde_json::from_str(
+            r#"{"id":3,"title":"Film","sizeOnDisk":38400000000,"tags":[]}"#,
+        )
+        .unwrap();
+        let item = normalize(raw, Service::Radarr, &tags());
+        assert_eq!(item.size_on_disk, 38400000000);
     }
 
     #[test]
