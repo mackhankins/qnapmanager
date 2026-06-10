@@ -44,8 +44,8 @@ npm run tauri dev      # run the app
 On first launch, open **Settings**, enter your Sonarr/Radarr URLs and API keys
 (find each key in the service's *Settings → General*), hit **Test connection**
 for a green check, then **Save**. The keys are written to the OS keychain; leave
-a key field blank later to keep the stored one. The URLs default to a typical
-LAN setup and are editable.
+a key field blank later to keep the stored one. The URLs default to `localhost`
+on the standard Sonarr/Radarr ports — point them at your NAS's host/IP.
 
 ### Build a release bundle
 

@@ -16,11 +16,12 @@ pub struct AppConfig {
 }
 
 impl AppConfig {
-    /// Defaults pre-filled from the user's known setup (editable in Settings).
+    /// Sensible default URLs (the standard Sonarr/Radarr ports on localhost),
+    /// editable in Settings.
     pub fn with_known_defaults() -> Self {
         AppConfig {
-            sonarr: Some(ServiceConfig { url: "http://192.168.40.103:8989".into() }),
-            radarr: Some(ServiceConfig { url: "http://192.168.40.103:7878".into() }),
+            sonarr: Some(ServiceConfig { url: "http://localhost:8989".into() }),
+            radarr: Some(ServiceConfig { url: "http://localhost:7878".into() }),
         }
     }
 }
