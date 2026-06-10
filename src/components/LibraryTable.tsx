@@ -70,7 +70,7 @@ export function LibraryTable({ items, onDelete, onToggleTag, onBulkDelete }: Pro
     state: { sorting, rowSelection },
     onSortingChange: setSorting,
     onRowSelectionChange: setRowSelection,
-    getRowId: (row) => String(row.id),
+    getRowId: (row) => `${row.service}-${row.id}`,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });

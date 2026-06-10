@@ -35,17 +35,29 @@ export default function App() {
 
   async function confirmDelete() {
     if (!pendingDelete) return;
-    if (pendingDelete.length === 1) {
-      await api.deleteItem(pendingDelete[0]);
-    } else {
-      await api.bulkDelete(pendingDelete);
+    try {
+      if (pendingDelete.length === 1) {
+        await api.deleteItem(pendingDelete[0]);
+      } else {
+        const result = await api.bulkDelete(pendingDelete);
+        if (result.failed.length > 0) {
+          setErrors(result.failed.map((f) => ({ service: "Delete", message: `${f.title}: ${f.message}` })));
+        }
+      }
+    } catch (e) {
+      setErrors([{ service: "Delete", message: String((e as { message?: string }).message ?? e) }]);
+    } finally {
+      setPendingDelete(null);
+      await load();
     }
-    setPendingDelete(null);
-    await load();
   }
 
   async function toggleTag(item: LibraryItem) {
-    await api.toggleTemporaryTag(item);
+    try {
+      await api.toggleTemporaryTag(item);
+    } catch (e) {
+      setErrors([{ service: "Tag", message: String((e as { message?: string }).message ?? e) }]);
+    }
     await load();
   }
 
@@ -65,7 +77,7 @@ export default function App() {
       ))}
 
       {view === "settings" && config && (
-        <Settings config={config} onSaved={() => { setView("library"); load(); }} />
+        <Settings config={config} onSaved={() => { api.getConfig().then(setConfig); setView("library"); load(); }} />
       )}
 
       {view === "library" && (
