@@ -21,7 +21,7 @@ tbody tr.selected, tbody tr.selected:hover { background: #fff3f3; }
 .status-badge { display: inline-block; padding: 2px 9px; border-radius: 999px;
   font-size: 12px; font-weight: 600; letter-spacing: .2px; }
 .status-continuing, .status-released { color: #16a34a; background: #16a34a22; }
-.status-ended { color: #475569; background: #47556922; }
+.status-ended { color: #c0392b; background: #c0392b22; }
 .status-upcoming { color: #2563eb; background: #2563eb22; }
 .status-inCinemas { color: #b45309; background: #b4530922; }
 .status-announced { color: #7c3aed; background: #7c3aed22; }
