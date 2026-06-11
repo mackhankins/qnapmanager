@@ -1,8 +1,14 @@
 :root { font-family: system-ui, sans-serif; }
 .app { padding: 16px; }
 .app-header { display: flex; justify-content: space-between; align-items: center; }
-.app-header nav button { margin-left: 8px; }
-.app-header nav button.active { font-weight: 600; }
+.app-title { font-size: 1.4rem; font-weight: 700; color: inherit; background: none;
+  border: none; cursor: pointer; padding: 0; font-family: inherit; }
+.app-header nav { display: flex; gap: 4px; align-items: center; }
+.app-header .icon-btn { padding: 7px; }
+.app-header .icon-btn.active { color: #2563eb; background: #2563eb14; }
+.icon-btn:disabled { cursor: default; opacity: .55; }
+.spin { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .toolbar { display: flex; gap: 8px; align-items: center; margin: 12px 0; flex-wrap: wrap; }
 .search-wrap { position: relative; flex: 1; min-width: 180px; display: flex; }
 .search { flex: 1; padding: 6px 28px 6px 10px; box-sizing: border-box; }
