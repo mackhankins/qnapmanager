@@ -123,8 +123,14 @@ export function LibraryTable({ items, onDelete, onToggleTag, onBulkDelete }: Pro
   return (
     <div className="library">
       <div className="toolbar">
-        <input className="search" placeholder="Search title…"
-          value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="search-wrap">
+          <input className="search" placeholder="Search title…"
+            value={search} onChange={(e) => setSearch(e.target.value)} />
+          {search && (
+            <button className="search-clear" aria-label="Clear search"
+              onClick={() => setSearch("")}>×</button>
+          )}
+        </div>
         {chips.map((c) => (
           <button key={c} className={`chip ${filter === c ? "active" : ""}`}
             onClick={() => setFilter(c)}>{chipLabel[c]}</button>

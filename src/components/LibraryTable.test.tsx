@@ -30,6 +30,15 @@ describe("LibraryTable", () => {
     expect(screen.queryByText("Big Show")).not.toBeInTheDocument();
   });
 
+  it("clears the search box via the clear button", async () => {
+    render(<LibraryTable items={items} onDelete={() => {}} onToggleTag={() => {}} onBulkDelete={() => {}} />);
+    const input = screen.getByPlaceholderText(/search title/i);
+    await userEvent.type(input, "Big");
+    expect(input).toHaveValue("Big");
+    await userEvent.click(screen.getByRole("button", { name: /clear search/i }));
+    expect(input).toHaveValue("");
+  });
+
   it("filters by the selected status", async () => {
     render(<LibraryTable items={items} onDelete={() => {}} onToggleTag={() => {}} onBulkDelete={() => {}} />);
     await userEvent.selectOptions(screen.getByLabelText("Filter by status"), "ended");

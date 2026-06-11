@@ -4,7 +4,12 @@
 .app-header nav button { margin-left: 8px; }
 .app-header nav button.active { font-weight: 600; }
 .toolbar { display: flex; gap: 8px; align-items: center; margin: 12px 0; flex-wrap: wrap; }
-.search { flex: 1; min-width: 180px; padding: 6px 10px; }
+.search-wrap { position: relative; flex: 1; min-width: 180px; display: flex; }
+.search { flex: 1; padding: 6px 28px 6px 10px; box-sizing: border-box; }
+.search-clear { position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  border: none; background: none; cursor: pointer; color: #94a3b8; font-size: 18px;
+  line-height: 1; padding: 0 4px; }
+.search-clear:hover { color: #475569; }
 .chip { padding: 4px 12px; border: 1px solid #999; border-radius: 14px; background: #fff; cursor: pointer; }
 .chip.active { border-color: #2563eb; color: #2563eb; }
 .status-filter { padding: 4px 10px; border: 1px solid #999; border-radius: 6px; background: #fff; cursor: pointer; }
