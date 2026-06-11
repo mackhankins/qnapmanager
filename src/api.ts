@@ -17,10 +17,6 @@ export interface ServiceConfig { url: string }
 export interface AppConfig { sonarr: ServiceConfig | null; radarr: ServiceConfig | null }
 export interface ServiceError { service: string; message: string }
 export interface LoadResult { items: LibraryItem[]; errors: ServiceError[] }
-export interface BulkResult {
-  deleted: number[];
-  failed: { id: number; title: string; message: string }[];
-}
 
 export const api = {
   getConfig: () => invoke<AppConfig>("get_config"),
@@ -31,7 +27,6 @@ export const api = {
   listLibrary: () => invoke<LoadResult>("list_library"),
   toggleTemporaryTag: (item: LibraryItem) => invoke<void>("toggle_temporary_tag", { item }),
   deleteItem: (item: LibraryItem) => invoke<void>("delete_item", { item }),
-  bulkDelete: (items: LibraryItem[]) => invoke<BulkResult>("bulk_delete", { items }),
 };
 
 export const isTemporary = (item: LibraryItem): boolean =>

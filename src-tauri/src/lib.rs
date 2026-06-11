@@ -15,7 +15,6 @@ pub fn run() {
             commands::list_library,
             commands::toggle_temporary_tag,
             commands::delete_item,
-            commands::bulk_delete,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

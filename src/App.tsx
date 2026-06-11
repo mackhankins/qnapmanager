@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, type AppConfig, type LibraryItem, type ServiceError } from "./api";
 import { LibraryTable } from "./components/LibraryTable";
-import { ConfirmDeleteDialog } from "./components/ConfirmDeleteDialog";
+import { ConfirmDeleteDialog, type DeleteProgress } from "./components/ConfirmDeleteDialog";
 import { Settings } from "./components/Settings";
 import "./App.css";
 
@@ -14,6 +14,7 @@ export default function App() {
   const [errors, setErrors] = useState<ServiceError[]>([]);
   const [loading, setLoading] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<LibraryItem[] | null>(null);
+  const [deleteProgress, setDeleteProgress] = useState<DeleteProgress | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -35,21 +36,23 @@ export default function App() {
 
   async function confirmDelete() {
     if (!pendingDelete) return;
-    try {
-      if (pendingDelete.length === 1) {
-        await api.deleteItem(pendingDelete[0]);
-      } else {
-        const result = await api.bulkDelete(pendingDelete);
-        if (result.failed.length > 0) {
-          setErrors(result.failed.map((f) => ({ service: "Delete", message: `${f.title}: ${f.message}` })));
-        }
+    const targets = pendingDelete;
+    const failures: { title: string; message: string }[] = [];
+    // Delete one at a time so we can show live per-item progress.
+    for (let i = 0; i < targets.length; i++) {
+      setDeleteProgress({ done: i, total: targets.length, current: targets[i].title });
+      try {
+        await api.deleteItem(targets[i]);
+      } catch (e) {
+        failures.push({ title: targets[i].title, message: String((e as { message?: string }).message ?? e) });
       }
-    } catch (e) {
-      setErrors([{ service: "Delete", message: String((e as { message?: string }).message ?? e) }]);
-    } finally {
-      setPendingDelete(null);
-      await load();
     }
+    setDeleteProgress(null);
+    setPendingDelete(null);
+    if (failures.length > 0) {
+      setErrors(failures.map((f) => ({ service: "Delete", message: `${f.title}: ${f.message}` })));
+    }
+    await load();
   }
 
   async function toggleTag(item: LibraryItem) {
@@ -92,6 +95,7 @@ export default function App() {
       {pendingDelete && (
         <ConfirmDeleteDialog
           items={pendingDelete}
+          progress={deleteProgress}
           onCancel={() => setPendingDelete(null)}
           onConfirm={confirmDelete}
         />

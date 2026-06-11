@@ -45,6 +45,13 @@ tbody tr.selected, tbody tr.selected:hover { background: #fff3f3; }
 .muted { color: #888; }
 .total { margin-top: 12px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.delete-progress { margin-top: 14px; }
+.progress { height: 8px; background: #eee; border-radius: 999px; overflow: hidden; }
+.progress-bar { height: 100%; background: #c0392b; transition: width .2s ease; }
+.del-mark { display: inline-block; width: 1.3em; color: #94a3b8; }
+.del-done, .del-done .del-mark { color: #16a34a; }
+.del-active { font-weight: 600; }
+.del-pending { opacity: .45; }
 button.danger, .selection-bar button { background: #c0392b; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
 .settings fieldset { margin-bottom: 16px; }
 .settings input { display: block; margin: 6px 0; padding: 6px 10px; width: 320px; }

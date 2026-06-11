@@ -23,4 +23,14 @@ describe("ConfirmDeleteDialog", () => {
     await userEvent.click(screen.getByRole("button", { name: /delete 2 items/i }));
     expect(onConfirm).toHaveBeenCalledOnce();
   });
+
+  it("shows live progress and hides the action buttons while deleting", () => {
+    render(
+      <ConfirmDeleteDialog items={items} onCancel={() => {}} onConfirm={() => {}}
+        progress={{ done: 1, total: 2, current: "Doc" }} />
+    );
+    expect(screen.getByText(/Deleting 2 of 2 — Doc…/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /delete 2 items/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /cancel/i })).not.toBeInTheDocument();
+  });
 });

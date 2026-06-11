@@ -125,39 +125,3 @@ pub async fn delete_item(app: tauri::AppHandle, item: LibraryItem) -> Result<(),
     .ok_or_else(|| AppError::Config("service not configured".into()))?;
     client_for(item.service, &sc)?.delete_with_files(item.id).await
 }
-
-#[derive(Serialize)]
-pub struct BulkResult {
-    pub deleted: Vec<i64>,
-    pub failed: Vec<BulkFailure>,
-}
-
-#[derive(Serialize)]
-pub struct BulkFailure {
-    pub id: i64,
-    pub title: String,
-    pub message: String,
-}
-
-#[tauri::command]
-pub async fn bulk_delete(app: tauri::AppHandle, items: Vec<LibraryItem>) -> Result<BulkResult, AppError> {
-    let cfg = config::load_config(&config_dir(&app)?)?;
-    let mut deleted = Vec::new();
-    let mut failed = Vec::new();
-    for item in items {
-        let sc = match item.service {
-            Service::Sonarr => cfg.sonarr.clone(),
-            Service::Radarr => cfg.radarr.clone(),
-        };
-        let result = async {
-            let sc = sc.ok_or_else(|| AppError::Config("service not configured".into()))?;
-            client_for(item.service, &sc)?.delete_with_files(item.id).await
-        }
-        .await;
-        match result {
-            Ok(()) => deleted.push(item.id),
-            Err(e) => failed.push(BulkFailure { id: item.id, title: item.title, message: e.to_string() }),
-        }
-    }
-    Ok(BulkResult { deleted, failed })
-}
